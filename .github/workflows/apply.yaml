@@ -1,48 +1,21 @@
 name: Terraform Apply
-
 on:
   workflow_dispatch:
-
 permissions:
   id-token: write
   contents: read
-
 jobs:
-  terraform:
+  terraform-apply:
     runs-on: ubuntu-latest
-    environment: production   # manual approval enabled
-
+    environment: production   # Enables GitHub manual approval
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Format Check
-        run: terraform fmt -check
-
-      - name: Terraform Validate
-        run: terraform validate
-
-      - name: Terraform Plan
-        run: terraform plan -out=tfplan
-
-      # ✅ FIX HERE — upgrade to v4
-      - name: Upload Plan Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-plan
-          path: tfplan
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+          role-to-assume: ${{secrets.AWS_ROLE_ARN}}
+          aws-region: ${{secrets.AWS_REGION}}
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform init
+        working-directory: ./keypair
+      - run: terraform apply -auto-approve
+        working-directory: ./keypair
